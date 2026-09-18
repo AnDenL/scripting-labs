@@ -40,6 +40,7 @@ passwords = [
     "regular123",
     "Gr33n@Team",
     "normal123",
+    "qqqq"
 ]
 criteria = {
     "min_length": 7,

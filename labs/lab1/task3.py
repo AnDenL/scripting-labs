@@ -27,6 +27,7 @@ users_to_register = (
     ("incident_commander", "Cyber@Defense2023"),
     ("retired_expert", "NetworkS3c!99"),
     ("red_team_lead", "Malwar3@Scan"),
+    ("", "APT@Detect10n")
 )
 
 USER_CSV_DB_PATH = "labs/lab1/data/users.csv"
@@ -100,7 +101,7 @@ def log_event(func: Callable[P, R]) -> Callable[P, R]:
 
 
 def generate_hash(password: str, salt: str = "00000") -> str:
-    if password.isspace() or salt.isspace():
+    if not password.strip() or not salt.strip():
         raise ValueError("password or salt is empty")
 
     if len(password) < 12:
@@ -113,6 +114,8 @@ def generate_hash(password: str, salt: str = "00000") -> str:
 
 
 def create_user(username: str, password: str) -> tuple[str, str]:
+    if not username.strip() or not password.strip():
+        raise ValueError("username or password is empty")
     return (username, generate_hash(password, salt))
 
 
@@ -130,7 +133,7 @@ def create_users():
 @log_event
 def login(username: str, password: str) -> bool:
     if not username.strip() or not password.strip():
-            raise ValueError("username or password is empty")
+        raise ValueError("username or password is empty")
 
     stored_hash = users_db.get(username)
     if stored_hash is None:
@@ -168,4 +171,3 @@ if __name__ == "__main__":
     _ = login("risk_manager", "APT@Detect10n")
     _ = login("risk_manager", "WrongPassword123")
     _ = login("ghost_user", "SomeSecurePass123")
-    _ = login("", "SomeSecurePass123")
