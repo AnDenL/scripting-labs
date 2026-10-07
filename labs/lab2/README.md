@@ -29,6 +29,64 @@ labs/lab02/
 ```bash
 python -m labs.lab2.main demo
 ```
+### Схема взаємодії класів
+
+```mermaid
+classDiagram
+    User <|-- Admin : Наслідування 
+    UserAccount *-- User : Композиція 
+    UserAccount *-- Session : Композиція 
+    UserAccount *-- AuditLog : Композиція 
+    AuditLog o-- Log : Містить список записів
+
+    class User {
+        str username
+        str email
+        str role
+        bool active
+        bytes __password_hash
+        bytes __password_salt
+        set_password(password)
+        check_password(password) bool
+    }
+
+    class Admin {
+        set~str~ permissions
+        grant_permission(permission)
+        revoke_permission(permission)
+        has_permission(permission) bool
+    }
+
+    class Session {
+        str ip
+        datetime login_time
+        datetime last_activity
+        touch()
+        is_active(timeout_sec) bool
+    }
+
+    class Log {
+        <<dataclass>>
+        str username
+        Action action
+        datetime time
+    }
+
+    class AuditLog {
+        list~Log~ entries
+        append(username, action)
+    }
+
+    class UserAccount {
+        User user
+        Session session
+        AuditLog logs
+        login(username, password, ip)
+        is_authenticated() bool
+        logout()
+    }
+```
+
 ### Завдання 2:
 
 **Опис параметрів CLI**
