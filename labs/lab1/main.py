@@ -10,12 +10,13 @@ from labs.lab1.task3 import main as run_task3
 
 
 def main():
-    print("=== ЗАВДАННЯ 1 ===")
+    print("=== Task 1 ===")
     run_task1()
-    print("\n=== ЗАВДАННЯ 2 ===")
+    print("\n=== Task 2 ===")
     run_task2()
-    print("\n=== ЗАВДАННЯ 3 ===")
+    print("\n=== Task 3 ===")
     run_task3()
+
 
 if __name__ == "__main__":
     main()

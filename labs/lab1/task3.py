@@ -27,7 +27,7 @@ users_to_register = (
     ("incident_commander", "Cyber@Defense2023"),
     ("retired_expert", "NetworkS3c!99"),
     ("red_team_lead", "Malwar3@Scan"),
-    ("", "APT@Detect10n")
+    ("", "APT@Detect10n"),
 )
 
 USER_CSV_DB_PATH = "labs/lab1/data/users.csv"

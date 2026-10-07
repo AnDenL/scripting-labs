@@ -58,9 +58,7 @@ def check_access(username: str, resource: tuple[str, int]):
     if user := users.get(username, None):
         if not user["active"]:
             print(
-                check_log.format(
-                    username, resource[0], "DENY", "\n(Account inactive.)"
-                )
+                check_log.format(username, resource[0], "DENY", "\n(Account inactive.)")
             )
             return
 
