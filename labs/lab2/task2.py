@@ -121,7 +121,7 @@ def main() -> None:
             if not is_valid:
                 continue
 
-        logger.info(f"Validated {reader.line_num} IP/MAC entries.")
+        logger.info(f"Validated {reader.line_num-1} IP/MAC entries.")
 
     data = conflict_finder.find() if detect_spoofing else conflict_finder.conflict_data
 
