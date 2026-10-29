@@ -14,15 +14,18 @@ def create_category(category_in: CategoryCreate) -> CategoryRead:
     connection = get_connection()
     try:
         cursor = connection.cursor()
-        with connection:
-            cursor.execute(
-                "INSERT INTO categories (name) VALUES (?)",
-                (category_in.name,),
-            )
-            cat_id = cursor.lastrowid
-            assert cat_id is not None, "Failed to insert row and retrieve ID"
+        try:
+            with connection:
+                cursor.execute(
+                    "INSERT INTO categories (name) VALUES (?)",
+                    (category_in.name,),
+                )
+                cat_id = cursor.lastrowid
+                assert cat_id is not None, "Failed to insert row and retrieve ID"
 
-            return CategoryRead(id=cat_id, name=category_in.name)
+                return CategoryRead(id=cat_id, name=category_in.name)
+        except sqlite3.IntegrityError:
+            raise ValueError(f"Сategory with name '{category_in.name}' already exists.")
     finally:
         connection.close()
 
@@ -93,25 +96,28 @@ def create_record(record_in: RecordCreate) -> RecordRead | None:
             "SELECT id FROM categories WHERE id = ?", (record_in.category_id,)
         )
         if not cursor.fetchone():
-            raise ValueError(f"Категорію з id={record_in.category_id} не знайдено.")
+            raise ValueError(f"Сategory with id={record_in.category_id} not found.")
 
-        with connection:
-            cursor.execute(
-                """
-                INSERT INTO records (code, title, category_id, value, status)
-                VALUES (?, ?, ?, ?, ?)
-                """,
-                (
-                    record_in.code,
-                    record_in.title,
-                    record_in.category_id,
-                    record_in.value,
-                    record_in.status,
-                ),
-            )
-            rec_id = cursor.lastrowid
+        try:
+            with connection:
+                cursor.execute(
+                    """
+                    INSERT INTO records (code, title, category_id, value, status)
+                    VALUES (?, ?, ?, ?, ?)
+                    """,
+                    (
+                        record_in.code,
+                        record_in.title,
+                        record_in.category_id,
+                        record_in.value,
+                        record_in.status,
+                    ),
+                )
+                rec_id = cursor.lastrowid
 
-        return get_record_by_id(rec_id) if rec_id else None
+            return get_record_by_id(rec_id) if rec_id else None
+        except sqlite3.IntegrityError:
+            raise ValueError(f"Record with code '{record_in.code}' already exists.")
     finally:
         connection.close()
 
@@ -178,24 +184,27 @@ def update_record(record_id: int, record_in: RecordReplace) -> RecordRead | None
             "SELECT id FROM categories WHERE id = ?", (record_in.category_id,)
         )
         if not cursor.fetchone():
-            raise ValueError(f"Категорію з id={record_in.category_id} не знайдено.")
+            raise ValueError(f"Сategory with id={record_in.category_id} not found.")
 
-        with connection:
-            cursor.execute(
-                """
-                UPDATE records
-                SET code = ?, title = ?, category_id = ?, value = ?, status = ?
-                WHERE id = ?
-                """,
-                (
-                    record_in.code,
-                    record_in.title,
-                    record_in.category_id,
-                    record_in.value,
-                    record_in.status,
-                    record_id,
-                ),
-            )
+        try:
+            with connection:
+                cursor.execute(
+                    """
+                    UPDATE records
+                    SET code = ?, title = ?, category_id = ?, value = ?, status = ?
+                    WHERE id = ?
+                    """,
+                    (
+                        record_in.code,
+                        record_in.title,
+                        record_in.category_id,
+                        record_in.value,
+                        record_in.status,
+                        record_id,
+                    ),
+                )
+        except sqlite3.IntegrityError:
+            raise ValueError(f"Record with code '{record_in.code}' already exists.")
 
         return get_record_by_id(record_id)
     finally:
@@ -224,31 +233,34 @@ def create_records_batch(
 ) -> list[RecordRead]:
     codes = [r.code for r in records_in]
     if len(codes) != len(set(codes)):
-        raise ValueError("Duplicated code found in package")
+        raise ValueError("Duplicated code found in package.")
 
     connection = get_connection()
     try:
         cursor = connection.cursor()
         created_ids = []
 
-        with connection:
-            for rec in records_in:
-                cursor.execute(
-                    "SELECT id FROM categories WHERE id = ?", (rec.category_id,)
-                )
-                if not cursor.fetchone():
-                    raise ValueError(
-                        f"Couldn't find category with id={rec.category_id}."
+        try:
+            with connection:
+                for rec in records_in:
+                    cursor.execute(
+                        "SELECT id FROM categories WHERE id = ?", (rec.category_id,)
                     )
+                    if not cursor.fetchone():
+                        raise ValueError(
+                            f"Сategory with id={rec.category_id} not found."
+                        )
 
-                cursor.execute(
-                    """
-                    INSERT INTO records (code, title, category_id, value, status)
-                    VALUES (?, ?, ?, ?, ?)
-                    """,
-                    (rec.code, rec.title, rec.category_id, rec.value, rec.status),
-                )
-                created_ids.append(cursor.lastrowid)
+                    cursor.execute(
+                        """
+                        INSERT INTO records (code, title, category_id, value, status)
+                        VALUES (?, ?, ?, ?, ?)
+                        """,
+                        (rec.code, rec.title, rec.category_id, rec.value, rec.status),
+                    )
+                    created_ids.append(cursor.lastrowid)
+        except sqlite3.IntegrityError:
+            raise ValueError("Record with duplicate code already exists in database.")
 
         result: list[RecordRead] = []
         for rid in created_ids:
