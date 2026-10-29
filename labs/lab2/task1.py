@@ -3,7 +3,7 @@ import hmac
 import os
 import re
 from dataclasses import dataclass, field
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 from enum import Enum
 
 SALT_SIZE = 5
@@ -106,18 +106,16 @@ class Session:
 
     def __init__(self, ip: str) -> None:
         self.ip = ip
-        self.login_time = datetime.now(timezone.utc)
-        self.last_activity = datetime.now(timezone.utc)
+        self.login_time = datetime.now(UTC)
+        self.last_activity = datetime.now(UTC)
 
     def touch(self) -> None:
-        self.last_activity = datetime.now(timezone.utc)
+        self.last_activity = datetime.now(UTC)
 
     def is_active(self, timeout_sec: int) -> bool:
         if timeout_sec <= 0:
             raise ValueError("timeout can't be empty")
-        return datetime.now(timezone.utc) - self.last_activity <= timedelta(
-            seconds=timeout_sec
-        )
+        return datetime.now(UTC) - self.last_activity <= timedelta(seconds=timeout_sec)
 
 
 class Action(Enum):
@@ -130,7 +128,7 @@ class Action(Enum):
 class Log:
     username: str
     action: Action
-    time: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    time: datetime = field(default_factory=lambda: datetime.now(UTC))
 
     def __str__(self) -> str:
         return (

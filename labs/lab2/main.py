@@ -37,6 +37,14 @@ def demo() -> None:
     admin_account["permissions"] = {"read_logs", "ban_users"}
     print(f"New permissions: {admin_account['permissions']}")
 
+    admin_account2 = UserAccount(
+        Admin(
+            "Admin2", "andenlbd@gmail.com", "gfG6k5kvKCHn", "admin", True, {"read_logs"}
+        )
+    )
+    admin_account2["permissions"] = {"read_logs", "ban_users", "write_logs"}
+    print(f"All admins: {admin_account}\n {admin_account2}")
+
     print("\n--- Timeout ---")
     print("Changing last_activity time...")
     if account.session:
